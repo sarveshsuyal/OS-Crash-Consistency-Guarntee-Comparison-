@@ -1,0 +1,138 @@
+/* ==========================================================================
+   Crash-Consistency Engine: Dark Purple & Electric Blue Design System
+   ========================================================================== */
+
+:root {
+  /* Primary Brand: Deep Purple & Electric Violet */
+  --color-primary: #6343e0;
+  --color-primary-light: #7e61ff;
+  --color-primary-dark: #482ab8;
+  --color-primary-glow: rgba(99, 67, 224, 0.4);
+
+  /* Accent: Electric Blue & Cyan */
+  --color-accent: #00d2ff;
+  --color-accent-light: #48e5ff;
+  --color-accent-dark: #0099cc;
+  --color-accent-glow: rgba(0, 210, 255, 0.35);
+
+  /* Surfaces & Backgrounds: Deep Midnight Obsidian */
+  --color-bg: #090913;
+  --color-bg-alt: #0e0e1f;
+  --color-surface: #14142a;
+  --color-surface-hover: #1c1c38;
+  --color-surface-card: rgba(20, 20, 42, 0.85);
+  --color-surface-glass: rgba(22, 22, 46, 0.75);
+
+  /* Borders & Dividers */
+  --color-border: rgba(99, 67, 224, 0.22);
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-active: #00d2ff;
+
+  /* Typography: Ultra-readable high contrast */
+  --color-text-primary: #f8f9fd;
+  --color-text-secondary: #a4abd1;
+  --color-text-muted: #6f779b;
+  --color-text-on-accent: #090913;
+
+  /* Status Colors: Vibrant & Crisp */
+  --color-success: #00ff88;
+  --color-success-bg: rgba(0, 255, 136, 0.15);
+  --color-warning: #f59e0b;
+  --color-warning-bg: rgba(245, 158, 11, 0.15);
+  --color-error: #ff3366;
+  --color-error-bg: rgba(255, 51, 102, 0.15);
+  --color-cyan: #00e5ff;
+  --color-cyan-bg: rgba(0, 229, 255, 0.15);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.7);
+  --shadow-purple: 0 0 20px rgba(99, 67, 224, 0.3);
+  --shadow-blue: 0 0 20px rgba(0, 210, 255, 0.35);
+
+  /* Transitions */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Keyframe Animations */
+@keyframes ringPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 210, 255, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 210, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 210, 255, 0);
+  }
+}
+
+@keyframes purplePulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(99, 67, 224, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(99, 67, 224, 0.6);
+  }
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive Drawer Styles for Mobile / Short screens */
+@media (max-width: 768px) {
+  .sidebar-container {
+    position: fixed !important;
+    top: 62px !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    height: calc(100% - 62px) !important;
+    width: 85% !important;
+    max-width: 320px !important;
+    transform: translateX(-100%);
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  .sidebar-container.drawer-open {
+    transform: translateX(0) !important;
+  }
+
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+
+  .hide-on-desktop {
+    display: flex !important;
+  }
+}
