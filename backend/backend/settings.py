@@ -117,17 +117,16 @@ TEMPLATES = [
 # DATABASE
 # --------------------------------------------------
 
-# Preserve the current database path by default.
-# To persist SQLite data on Render, set DATABASE_PATH to a file
-# on an attached persistent disk. Back up existing data before
-# changing this path.
+# Defaults to the existing local database location.
+# In production, set DATABASE_PATH to a SQLite file on an
+# attached persistent disk. Back up the old database first.
 database_path = os.environ.get("DATABASE_PATH", "").strip()
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": (
-            Path(database_path)
+            Path(database_path).expanduser()
             if database_path
             else BASE_DIR / "db.sqlite3"
         ),
@@ -164,12 +163,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": (
             "django.contrib.auth.password_validation."
-            "CommonPasswordValidator"
-        ),
-    },
-    {
-        "NAME": (
-            "django.contrib.auth.password_validation."
             "NumericPasswordValidator"
         ),
     },
@@ -194,9 +187,13 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
+
 MEDIA_ROOT = Path(
-    os.environ.get("MEDIA_ROOT", str(BASE_DIR / "media"))
-)
+    os.environ.get(
+        "MEDIA_ROOT",
+        str(BASE_DIR / "media"),
+    )
+).expanduser()
 
 STORAGES = {
     "default": {
@@ -290,10 +287,12 @@ REST_FRAMEWORK = {
 
 DB_WAL_ENABLED = True
 
-# Used by journal_engine.py only if that module reads this setting.
+# Set this environment variable to the actual mount path of your
+# Render persistent disk. The fallback is for local development only.
 PERSISTENT_STORAGE_ROOT = os.environ.get(
     "PERSISTENT_STORAGE_ROOT",
     str(BASE_DIR.parent / "storage"),
 )
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
