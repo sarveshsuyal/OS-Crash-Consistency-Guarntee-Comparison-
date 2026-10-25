@@ -593,6 +593,59 @@ def content_stream_upload(request, transfer_id):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def interrupt_transfer(request, transfer_id):
+    """
+    Marks a transfer as interrupted without deleting its durable state.
+    Only the sender or receiver may interrupt the transfer.
+    """
+    try:
+        session = FileTransferSession.objects.get(transfer_id=transfer_id)
+    except FileTransferSession.DoesNotExist:
+        return Response(
+            {'error': 'Transfer session not found'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if request.user not in (session.sender, session.receiver):
+        return Response(
+            {'error': 'Forbidden: You cannot interrupt another user\'s transfer.'},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if session.status == TransferState.INTERRUPTED:
+        return Response({
+            'success': True,
+            'transfer_id': str(session.transfer_id),
+            'status': session.status,
+            'message': 'Transfer is already interrupted.',
+        })
+
+    try:
+        transition_transfer_state(
+            session,
+            TransferState.INTERRUPTED,
+            reason='Transfer interrupted by user or client request.',
+        )
+    except InvalidStateTransitionError as exc:
+        return Response(
+            {
+                'error': str(exc),
+                'status': session.status,
+            },
+            status=status.HTTP_409_CONFLICT,
+        )
+
+    session.refresh_from_db()
+    return Response({
+        'success': True,
+        'transfer_id': str(session.transfer_id),
+        'status': session.status,
+        'message': 'Transfer interrupted. Existing persisted chunks were preserved.',
+    })
+
+
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def simulate_crash(request, transfer_id=None):
     """
@@ -1158,28 +1211,53 @@ def get_resume_state(request, transfer_id):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def reset_os_metrics(request):
     """
     Clears test transfer sessions and logs for a clean demonstration run.
     Preserves all User profiles and credentials!
     """
-    # Permission check: require authenticated user
-    if request.user.is_authenticated and not request.user.is_staff:
-        # Non-staff users only clear their own test transfers
-        user = request.user
-        FileTransferSession.objects.filter(Q(sender=user) | Q(receiver=user)).delete()
-    else:
+    # Only staff users can perform a global reset.
+    # Authenticated non-staff users may clear only transfers involving themselves.
+    user = request.user
+
+    if user.is_staff:
         ram_buffer_store.simulate_crash_wipe()
         FileTransferSession.objects.all().delete()
-        CrashEventLog.objects.all().delete()
         JournalChunk.objects.all().delete()
+        CrashEventLog.objects.all().delete()
+
+        message = (
+            'Global OS transmission records, journal chunks, logs, '
+            'and volatile buffers reset successfully.'
+        )
+    else:
+        user_transfers = FileTransferSession.objects.filter(
+            Q(sender=user) | Q(receiver=user)
+        )
+        user_transfer_ids = list(
+            user_transfers.values_list('transfer_id', flat=True)
+        )
+
+        user_transfers.delete()
+        CrashEventLog.objects.filter(
+            transfer__transfer_id__in=user_transfer_ids
+        ).delete()
+        JournalChunk.objects.filter(
+            transfer__transfer_id__in=user_transfer_ids
+        ).delete()
+
+        message = 'Your transfer records reset successfully.'
 
     CrashEventLog.objects.create(
         event_type='BENCHMARK_RESET',
         subsystem='VFS_ADMIN',
-        message='OS transmission ledger, WAL tables, and RAM caches reset to baseline',
-        details={'timestamp': timezone.now().isoformat()}
+        message=message,
+        details={
+            'timestamp': timezone.now().isoformat(),
+            'scope': 'global' if user.is_staff else 'user',
+            'user_id': user.id,
+        },
     )
 
-    return Response({'message': 'OS transmission records and volatile buffers reset successfully'})
+    return Response({'message': message})
