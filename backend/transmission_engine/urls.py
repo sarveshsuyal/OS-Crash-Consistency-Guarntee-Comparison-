@@ -84,6 +84,13 @@ urlpatterns = [
     # OS metrics
     path("os-metrics/", views.get_os_metrics, name="get_os_metrics"),
     path("os-metrics/reset/", views.reset_os_metrics, name="reset_os_metrics"),
+
+
+    path(
+        "transfers/<uuid:transfer_id>/interruption",
+        views.interrupt_transfer,
+        name="interrupt_transfer",
+    ),
 ]
 
 
