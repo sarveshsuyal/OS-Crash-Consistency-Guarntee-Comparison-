@@ -1,0 +1,20 @@
+{
+  "name": "crash-consistency-backend",
+  "version": "2.0.0",
+  "description": "Real Binary File Transfer and Crash-Consistency Engine",
+  "main": "coordinator.js",
+  "scripts": {
+    "start": "node coordinator.js",
+    "test": "node tests/integration.test.js"
+  },
+  "keywords": [
+    "crash-consistency",
+    "distributed-systems",
+    "storage-engine",
+    "wal",
+    "recovery",
+    "binary-transfer"
+  ],
+  "author": "",
+  "license": "ISC"
+}
