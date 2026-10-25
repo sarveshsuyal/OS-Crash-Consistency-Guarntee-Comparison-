@@ -20,7 +20,7 @@ export const getBackendUrl = () => {
   if (envUrl && envUrl.trim() !== '') {
     return envUrl.trim().replace(/\/+$/, '');
   }
-  return 'http://127.0.0.1:8000';
+  return 'https://os-crash-consistency-guarntee-comparison.onrender.com';
 };
 
 export const setBackendUrl = (url) => {
