@@ -18,17 +18,21 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
     if os.environ.get("RENDER"):
         raise RuntimeError(
-            "SECRET_KEY must be configured in Render environment variables."
+            "Set SECRET_KEY in Render Environment settings."
         )
     SECRET_KEY = (
         "django-insecure-local-development-only-change-this-key"
     )
 
-DEBUG = os.environ.get("DEBUG", "False").lower() in (
+DEBUG = os.environ.get("DEBUG", "False").strip().lower() in {
     "true", "1", "yes"
-)
+}
 
-# Configure allowed hosts
+
+# --------------------------------------------------
+# ALLOWED HOSTS
+# --------------------------------------------------
+
 allowed_hosts_env = os.environ.get("ALLOWED_HOSTS", "")
 render_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "")
 
@@ -42,7 +46,7 @@ if render_hostname:
     ALLOWED_HOSTS.append(render_hostname)
 
 ALLOWED_HOSTS.extend(["localhost", "127.0.0.1"])
-ALLOWED_HOSTS = list(set(ALLOWED_HOSTS))
+ALLOWED_HOSTS = list(dict.fromkeys(ALLOWED_HOSTS))
 
 
 # --------------------------------------------------
@@ -125,8 +129,9 @@ DATABASES = {
     }
 }
 
-# Preserve the existing database.
-# Do not delete db.sqlite3 during deployment.
+# Keep the existing database file.
+# Configure persistent storage on Render if data must survive
+# redeployments and service restarts.
 
 
 # --------------------------------------------------
@@ -186,7 +191,10 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": (
+            "whitenoise.storage."
+            "CompressedManifestStaticFilesStorage"
+        ),
     },
 }
 
@@ -199,7 +207,7 @@ cors_origins_env = os.environ.get("CORS_ALLOWED_ORIGINS", "")
 
 if cors_origins_env:
     CORS_ALLOWED_ORIGINS = [
-        origin.strip()
+        origin.strip().rstrip("/")
         for origin in cors_origins_env.split(",")
         if origin.strip()
     ]
@@ -271,4 +279,3 @@ REST_FRAMEWORK = {
 DB_WAL_ENABLED = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
