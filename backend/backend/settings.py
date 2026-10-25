@@ -60,11 +60,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
-
     "transmission_engine",
 ]
 
@@ -119,19 +117,25 @@ TEMPLATES = [
 # DATABASE
 # --------------------------------------------------
 
+# Preserve the current database path by default.
+# To persist SQLite data on Render, set DATABASE_PATH to a file
+# on an attached persistent disk. Back up existing data before
+# changing this path.
+database_path = os.environ.get("DATABASE_PATH", "").strip()
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": (
+            Path(database_path)
+            if database_path
+            else BASE_DIR / "db.sqlite3"
+        ),
         "OPTIONS": {
             "timeout": 20,
         },
     }
 }
-
-# Keep the existing database file.
-# Configure persistent storage on Render if data must survive
-# redeployments and service restarts.
 
 
 # --------------------------------------------------
@@ -149,6 +153,12 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": (
             "django.contrib.auth.password_validation."
             "MinimumLengthValidator"
+        ),
+    },
+    {
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "CommonPasswordValidator"
         ),
     },
     {
@@ -184,7 +194,9 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = Path(
+    os.environ.get("MEDIA_ROOT", str(BASE_DIR / "media"))
+)
 
 STORAGES = {
     "default": {
@@ -205,7 +217,7 @@ STORAGES = {
 
 cors_origins_env = os.environ.get("CORS_ALLOWED_ORIGINS", "")
 
-if cors_origins_env:
+if cors_origins_env.strip():
     CORS_ALLOWED_ORIGINS = [
         origin.strip().rstrip("/")
         for origin in cors_origins_env.split(",")
@@ -240,7 +252,7 @@ CORS_ALLOW_HEADERS = [
 
 csrf_trusted_raw = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
 
-if csrf_trusted_raw:
+if csrf_trusted_raw.strip():
     CSRF_TRUSTED_ORIGINS = [
         origin.strip()
         for origin in csrf_trusted_raw.split(",")
@@ -273,9 +285,15 @@ REST_FRAMEWORK = {
 
 
 # --------------------------------------------------
-# TRANSACTION ENGINE
+# TRANSACTION ENGINE STORAGE
 # --------------------------------------------------
 
 DB_WAL_ENABLED = True
+
+# Used by journal_engine.py only if that module reads this setting.
+PERSISTENT_STORAGE_ROOT = os.environ.get(
+    "PERSISTENT_STORAGE_ROOT",
+    str(BASE_DIR.parent / "storage"),
+)
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
